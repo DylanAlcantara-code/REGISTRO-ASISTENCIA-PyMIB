@@ -11,13 +11,15 @@
   <meta name="description" content="Sistema de asistencia industrial para PyMIB" />
   <title>PyMIB Attendance</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
 
-  <!-- ── SPLASH ── -->
+  <!-- SPLASH -->
   <div id="splash" class="splash">
     <div class="splash-bg"></div>
     <div class="splash-content">
@@ -33,7 +35,7 @@
     </div>
   </div>
 
-  <!-- ── MAIN APP ── -->
+  <!-- MAIN APP -->
   <div id="app" class="app hidden">
 
     <!-- Header -->
@@ -44,7 +46,7 @@
         <span class="header-name"><span class="py">Py</span><span class="mib">MIB</span></span>
       </div>
       <div class="header-status">
-        <span id="sync-indicator" class="sync-dot offline" title="Estado de sincronización"></span>
+        <span id="sync-indicator" class="sync-dot offline"></span>
         <span id="sync-label" class="sync-label">OFFLINE</span>
       </div>
     </header>
@@ -57,31 +59,28 @@
         <span class="role-title-line"></span>
       </div>
       <div class="role-cards">
-        <button class="role-card" id="btn-supervisor" onclick="selectRole('supervisor')">
+        <button class="role-card" onclick="selectRole('supervisor')">
           <div class="role-icon">👷</div>
           <div class="role-name">SUPERVISOR</div>
           <div class="role-desc">Generar QR de asistencia</div>
           <div class="role-arrow">→</div>
         </button>
-        <button class="role-card" id="btn-worker" onclick="selectRole('worker')">
+        <button class="role-card" onclick="selectRole('worker')">
           <div class="role-icon">🔧</div>
           <div class="role-name">TRABAJADOR</div>
           <div class="role-desc">Registrar asistencia</div>
           <div class="role-arrow">→</div>
         </button>
       </div>
-      <button class="btn-records" onclick="showRecords()">
-        📋 Ver Registros
-      </button>
+      <button class="btn-records" onclick="showRecords()">📋 Ver Registros</button>
     </section>
 
-    <!-- ── SUPERVISOR VIEW ── -->
+    <!-- SUPERVISOR VIEW -->
     <section id="supervisor-view" class="view hidden">
       <div class="view-header">
         <button class="btn-back" onclick="goBack()">← VOLVER</button>
         <h2>SUPERVISOR</h2>
       </div>
-
       <div class="card">
         <div class="card-label">CONFIGURAR SESIÓN</div>
         <div class="form-group">
@@ -101,7 +100,7 @@
         <div class="card-label">QR ACTIVO</div>
         <div class="qr-meta" id="qr-meta"></div>
         <div class="qr-wrapper">
-          <canvas id="qr-canvas"></canvas>
+          <div id="qr-canvas-wrap"></div>
           <div class="qr-frame"></div>
         </div>
         <div class="qr-timer-wrap">
@@ -115,25 +114,21 @@
       </div>
     </section>
 
-    <!-- ── WORKER VIEW ── -->
+    <!-- WORKER VIEW -->
     <section id="worker-view" class="view hidden">
       <div class="view-header">
         <button class="btn-back" onclick="goBack()">← VOLVER</button>
         <h2>TRABAJADOR</h2>
       </div>
 
-      <!-- Step 1: Scan -->
       <div id="step-scan" class="step-card">
         <div class="step-number">01</div>
         <div class="card-label">ESCANEAR QR</div>
-        <div id="scanner-container">
-          <div id="qr-reader"></div>
-        </div>
+        <div id="qr-reader"></div>
         <div id="scan-status" class="scan-status">Apunta la cámara al código QR del supervisor</div>
         <div id="scanned-info" class="scanned-info hidden"></div>
       </div>
 
-      <!-- Step 2: Name -->
       <div id="step-name" class="step-card hidden">
         <div class="step-number">02</div>
         <div class="card-label">TU NOMBRE</div>
@@ -148,7 +143,6 @@
         <button class="btn-ghost" onclick="resetScan()">← Escanear de nuevo</button>
       </div>
 
-      <!-- Step 3: Confirm -->
       <div id="step-confirm" class="step-card hidden">
         <div class="confirm-icon" id="confirm-icon">✅</div>
         <div class="card-label" id="confirm-type-label">ENTRADA REGISTRADA</div>
@@ -157,7 +151,7 @@
       </div>
     </section>
 
-    <!-- ── RECORDS VIEW ── -->
+    <!-- RECORDS VIEW -->
     <section id="records-view" class="view hidden">
       <div class="view-header">
         <button class="btn-back" onclick="goBack()">← VOLVER</button>
@@ -174,12 +168,13 @@
 
   </div>
 
-  <!-- Toast notifications -->
   <div id="toast-container"></div>
 
-  <!-- Scripts -->
+  <!-- QR generation: use qrcode-generator (correct API) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- QR scanner -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
   <script src="db.js"></script>
   <script src="sync.js"></script>
   <script src="qr.js"></script>

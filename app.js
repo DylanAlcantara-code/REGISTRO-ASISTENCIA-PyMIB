@@ -293,3 +293,53 @@ function escHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+// ── PWA INSTALL PROMPT ────────────────
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  showInstallBanner();
+});
+
+function showInstallBanner() {
+  // Don't show if already installed
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
+  if (document.getElementById('pwa-banner')) return;
+
+  const banner = document.createElement('div');
+  banner.id        = 'pwa-banner';
+  banner.className = 'pwa-banner';
+  banner.innerHTML = `
+    <div class="pwa-banner-icon">📲</div>
+    <div class="pwa-banner-text">
+      <strong>INSTALAR PyMIB</strong>
+      <span>Funciona sin internet · Acceso rápido</span>
+    </div>
+    <div class="pwa-banner-btns">
+      <button class="pwa-install-btn" onclick="installPWA()">INSTALAR</button>
+      <button class="pwa-dismiss-btn" onclick="dismissBanner()">✕</button>
+    </div>`;
+  document.body.appendChild(banner);
+}
+
+async function installPWA() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  console.log('[PyMIB PWA] Install outcome:', outcome);
+  deferredInstallPrompt = null;
+  dismissBanner();
+}
+
+function dismissBanner() {
+  const b = document.getElementById('pwa-banner');
+  if (b) b.remove();
+}
+
+window.addEventListener('appinstalled', () => {
+  console.log('[PyMIB PWA] App instalada ✓');
+  dismissBanner();
+  showToast('✓ PyMIB instalada correctamente', 'success');
+});
