@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0c0f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="PyMIB Attendance" />
+  <meta name="description" content="Sistema de asistencia industrial para PyMIB" />
+  <title>PyMIB Attendance</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ── SPLASH ── -->
+  <div id="splash" class="splash">
+    <div class="splash-bg"></div>
+    <div class="splash-content">
+      <div class="splash-logo">
+        <div class="logo-gear">⚙</div>
+        <div class="logo-bolt">⚡</div>
+      </div>
+      <div class="splash-brand">
+        <span class="brand-py">Py</span><span class="brand-mib">MIB</span>
+      </div>
+      <div class="splash-sub">ATTENDANCE SYSTEM</div>
+      <div class="splash-bar"><div class="splash-progress"></div></div>
+    </div>
+  </div>
+
+  <!-- ── MAIN APP ── -->
+  <div id="app" class="app hidden">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <span class="header-gear">⚙</span>
+        <span class="header-bolt">⚡</span>
+        <span class="header-name"><span class="py">Py</span><span class="mib">MIB</span></span>
+      </div>
+      <div class="header-status">
+        <span id="sync-indicator" class="sync-dot offline" title="Estado de sincronización"></span>
+        <span id="sync-label" class="sync-label">OFFLINE</span>
+      </div>
+    </header>
+
+    <!-- Role Selector -->
+    <section id="role-selector" class="role-selector">
+      <div class="role-title">
+        <span class="role-title-line"></span>
+        SELECCIONA TU ROL
+        <span class="role-title-line"></span>
+      </div>
+      <div class="role-cards">
+        <button class="role-card" id="btn-supervisor" onclick="selectRole('supervisor')">
+          <div class="role-icon">👷</div>
+          <div class="role-name">SUPERVISOR</div>
+          <div class="role-desc">Generar QR de asistencia</div>
+          <div class="role-arrow">→</div>
+        </button>
+        <button class="role-card" id="btn-worker" onclick="selectRole('worker')">
+          <div class="role-icon">🔧</div>
+          <div class="role-name">TRABAJADOR</div>
+          <div class="role-desc">Registrar asistencia</div>
+          <div class="role-arrow">→</div>
+        </button>
+      </div>
+      <button class="btn-records" onclick="showRecords()">
+        📋 Ver Registros
+      </button>
+    </section>
+
+    <!-- ── SUPERVISOR VIEW ── -->
+    <section id="supervisor-view" class="view hidden">
+      <div class="view-header">
+        <button class="btn-back" onclick="goBack()">← VOLVER</button>
+        <h2>SUPERVISOR</h2>
+      </div>
+
+      <div class="card">
+        <div class="card-label">CONFIGURAR SESIÓN</div>
+        <div class="form-group">
+          <label class="field-label">NOMBRE DEL SUPERVISOR</label>
+          <input type="text" id="sup-name" class="field-input" placeholder="Ej: Juan Bahena" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label class="field-label">PROYECTO / OBRA</label>
+          <input type="text" id="sup-project" class="field-input" placeholder="Ej: Planta PEMEX - Refinería" autocomplete="off" />
+        </div>
+        <button class="btn-primary" onclick="generateQR()">
+          <span class="btn-icon">⚡</span> GENERAR QR
+        </button>
+      </div>
+
+      <div id="qr-container" class="card hidden">
+        <div class="card-label">QR ACTIVO</div>
+        <div class="qr-meta" id="qr-meta"></div>
+        <div class="qr-wrapper">
+          <canvas id="qr-canvas"></canvas>
+          <div class="qr-frame"></div>
+        </div>
+        <div class="qr-timer-wrap">
+          <div class="timer-label">EXPIRA EN</div>
+          <div id="qr-timer" class="qr-timer">5:00</div>
+          <div class="timer-bar-bg">
+            <div id="timer-bar" class="timer-bar"></div>
+          </div>
+        </div>
+        <button class="btn-secondary" onclick="generateQR()">🔄 REGENERAR QR</button>
+      </div>
+    </section>
+
+    <!-- ── WORKER VIEW ── -->
+    <section id="worker-view" class="view hidden">
+      <div class="view-header">
+        <button class="btn-back" onclick="goBack()">← VOLVER</button>
+        <h2>TRABAJADOR</h2>
+      </div>
+
+      <!-- Step 1: Scan -->
+      <div id="step-scan" class="step-card">
+        <div class="step-number">01</div>
+        <div class="card-label">ESCANEAR QR</div>
+        <div id="scanner-container">
+          <div id="qr-reader"></div>
+        </div>
+        <div id="scan-status" class="scan-status">Apunta la cámara al código QR del supervisor</div>
+        <div id="scanned-info" class="scanned-info hidden"></div>
+      </div>
+
+      <!-- Step 2: Name -->
+      <div id="step-name" class="step-card hidden">
+        <div class="step-number">02</div>
+        <div class="card-label">TU NOMBRE</div>
+        <div id="qr-info-display" class="qr-info-display"></div>
+        <div class="form-group">
+          <label class="field-label">NOMBRE COMPLETO</label>
+          <input type="text" id="worker-name" class="field-input" placeholder="Ej: Carlos Martínez" autocomplete="off" />
+        </div>
+        <button class="btn-primary" onclick="registerAttendance()">
+          <span class="btn-icon">📍</span> REGISTRAR ASISTENCIA
+        </button>
+        <button class="btn-ghost" onclick="resetScan()">← Escanear de nuevo</button>
+      </div>
+
+      <!-- Step 3: Confirm -->
+      <div id="step-confirm" class="step-card hidden">
+        <div class="confirm-icon" id="confirm-icon">✅</div>
+        <div class="card-label" id="confirm-type-label">ENTRADA REGISTRADA</div>
+        <div id="confirm-details" class="confirm-details"></div>
+        <button class="btn-primary" onclick="resetWorker()">NUEVO REGISTRO</button>
+      </div>
+    </section>
+
+    <!-- ── RECORDS VIEW ── -->
+    <section id="records-view" class="view hidden">
+      <div class="view-header">
+        <button class="btn-back" onclick="goBack()">← VOLVER</button>
+        <h2>REGISTROS</h2>
+      </div>
+      <div class="records-toolbar">
+        <span id="records-count" class="records-count">0 registros</span>
+        <button class="btn-sync-now" onclick="syncNow()">⚡ SINCRONIZAR</button>
+      </div>
+      <div id="records-list" class="records-list">
+        <div class="empty-state">No hay registros aún</div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="db.js"></script>
+  <script src="sync.js"></script>
+  <script src="qr.js"></script>
+  <script src="scanner.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
